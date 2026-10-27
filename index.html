@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Conferência de Cartão × NF</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f6f8;--card:#fff;--tx:#1b1f27;--mut:#6b7280;--bd:#e2e5ea;--ac:#2456d6;--ok:#e6f6ec;--okt:#13703a;--bad:#fde8e8;--badt:#b42318;--warn:#fff3df;--warnt:#9a5b00}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171c;--card:#1e222a;--tx:#e8eaee;--mut:#9aa3b2;--bd:#303642;--ac:#7aa2ff;--ok:#12301f;--okt:#6ee7a0;--bad:#3a1a1a;--badt:#ff9c94;--warn:#3a2c12;--warnt:#ffc666}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:16px;margin:0 0 10px}
+.sub{color:var(--mut);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px}
+.drop{border:2px dashed var(--bd);border-radius:10px;padding:22px;text-align:center;cursor:pointer;color:var(--mut)}
+.drop.over{border-color:var(--ac);color:var(--ac)}
+.files{list-style:none;padding:0;margin:10px 0 0;font-size:13px}
+.files li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid var(--bd)}
+.files button{border:0;background:none;color:var(--badt);cursor:pointer;font-size:16px}
+label.opt{display:block;font-size:13px;color:var(--mut);margin-top:10px}
+select,input[type=text]{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:6px;padding:5px 8px;font:inherit}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer}
+.btn.sec{background:var(--card);color:var(--tx);border:1px solid var(--bd)}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:16px 0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:16px 0}
+.stat{border-radius:10px;padding:12px;border:1px solid var(--bd);background:var(--card)}
+.stat b{display:block;font-size:20px}.stat span{font-size:12px;color:var(--mut)}
+.stat.bad{background:var(--bad);color:var(--badt)}.stat.ok{background:var(--ok);color:var(--okt)}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--bd);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:14px}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--bd);white-space:nowrap}
+th{font-size:12px;color:var(--mut);text-transform:uppercase}
+td.r{text-align:right;font-variant-numeric:tabular-nums}
+tr.ok td{background:var(--ok)}tr.sem td,tr.falta td{background:var(--bad);color:var(--badt);font-weight:600}
+tr.erp td{color:var(--mut)}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;font-weight:600}
+.msg{font-size:13px;color:var(--mut);margin-top:8px}
+</style></head><body><main>
+<h1>Conferência de vendas de cartão × NF-e / NFC-e</h1>
+<p class="sub">Importe um ou mais relatórios do banco e do ERP (PDF, XLSX, XLS ou CSV). Todos os arquivos de cada lado são somados na conciliação.</p>
+
+<div class="grid">
+ <div class="card"><h2>1. Relatórios do banco (cartão)</h2>
+  <div class="drop" id="dB">Arraste ou clique para escolher arquivos</div>
+  <input type="file" id="fB" multiple accept=".pdf,.xlsx,.xls,.csv" hidden>
+  <ul class="files" id="lB"></ul>
+  <details class="opt"><summary>Ou cole o texto da tabela</summary><textarea id="pB" rows="5" style="width:100%;margin-top:6px" placeholder="Ex.: 20/10 Processada Crédito à vista R$ 0,01"></textarea><button class="btn sec" data-p="B">Adicionar texto colado</button></details>
+  <label class="opt">Valor a usar quando a linha tem vários valores:
+   <select id="mB"><option value="max">Maior (valor bruto)</option><option value="first">Primeiro</option><option value="last">Último</option></select></label>
+ </div>
+ <div class="card"><h2>2. Relatórios do ERP (NF-e / NFC-e)</h2>
+  <div class="drop" id="dE">Arraste ou clique para escolher arquivos</div>
+  <input type="file" id="fE" multiple accept=".pdf,.xlsx,.xls,.csv" hidden>
+  <ul class="files" id="lE"></ul>
+  <details class="opt"><summary>Ou cole o texto da tabela</summary><textarea id="pE" rows="5" style="width:100%;margin-top:6px" placeholder="Cole aqui as linhas das notas"></textarea><button class="btn sec" data-p="E">Adicionar texto colado</button></details>
+  <label class="opt">Valor a usar quando a linha tem vários valores:
+   <select id="mE"><option value="max">Maior (valor total da nota)</option><option value="first">Primeiro</option><option value="last">Último</option></select></label>
+ </div>
+</div>
+<div class="card" style="margin-top:14px"><h2>3. Filtrar notas do ERP usadas na conciliação</h2>
+ <div id="tp"><span class="msg">Importe os relatórios do ERP para ver os tipos.</span></div>
+ <label class="opt">Valor mínimo: <input type="text" id="vMin" size="8" placeholder="0,00"> &nbsp; máximo: <input type="text" id="vMax" size="8" placeholder="sem limite"></label>
+</div>
+<label class="opt"><input type="checkbox" id="skipTot" checked> Ignorar linhas com “total” / “subtotal” (evita somas de rodapé)</label>
+<div class="bar"><button class="btn" id="go">Conciliar</button><button class="btn sec" id="clr">Limpar tudo</button><span class="msg" id="st"></span></div>
+
+<div id="res" hidden>
+ <div class="stats" id="stats"></div>
+ <div class="bar"><label>Mostrar: <select id="flt">
+  <option value="all">Tudo</option><option value="bad">Só pendências (vermelho)</option><option value="sem">Sem nenhuma NF</option><option value="falta">NF a menos (valor repetido)</option><option value="ok">Conciliadas</option></select></label>
+  <button class="btn sec" id="csv">Exportar CSV</button></div>
+ <h2>Vendas de cartão</h2>
+ <div class="wrap"><table><thead><tr><th>Data</th><th class="r">Valor</th><th>Situação</th><th>Documento ERP</th><th>Arquivo</th></tr></thead><tbody id="tb"></tbody></table></div>
+ <h2 style="margin-top:22px">Notas do ERP sem venda de cartão correspondente</h2>
+ <p class="msg">Informativo: podem ter sido pagas em dinheiro, Pix, etc.</p>
+ <div class="wrap"><table><thead><tr><th>Data</th><th class="r">Valor</th><th>Documento</th><th>Arquivo</th></tr></thead><tbody id="te"></tbody></table></div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const S={B:[],E:[]};const $=id=>document.getElementById(id);
+const AMT=/-?\d{1,3}(?:\.\d{3})+,\d{2}(?![\d%])|-?\d+,\d{2}(?![\d%])|-?\d+\.\d{2}(?![\d%])/g;
+const DT=/\b\d{2}\/\d{2}(?:\/\d{2,4})?\b/;
+const typeOf=l=>/\bNF-?C(?:-?e)?\b/i.test(l)?"NFC-e":/\bCF-?e\b/i.test(l)?"CF-e":/\bNF-?e\b/i.test(l)?"NF-e":"";
+const EX=new Set();
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const brl=c=>(c/100).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const toC=s=>{s=s.replace(/\s/g,"");if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");return Math.round(parseFloat(s)*100)};
+let RES=null;
+
+async function readFile(f){
+ const ext=f.name.split(".").pop().toLowerCase();const lines=[];let warn="";
+ if(ext==="pdf"){
+  const pdf=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;let nt=0;
+  for(let p=1;p<=pdf.numPages;p++){
+   const tc=await (await pdf.getPage(p)).getTextContent();const rows={};
+   const its=tc.items.filter(it=>it.str.trim()).map(it=>({x:it.transform[4],y:it.transform[5],w:it.width,s:it.str})).sort((a,b)=>b.y-a.y);
+   nt+=its.length;const grp=[];its.forEach(it=>{const g=grp[grp.length-1];if(g&&Math.abs(g.y-it.y)<=4)g.a.push(it);else grp.push({y:it.y,a:[it]})});
+   grp.forEach(g=>lines.push(g.a.sort((a,b)=>a.x-b.x).reduce((s,i,k,a)=>s+(k&&i.x-(a[k-1].x+a[k-1].w)>1?" ":"")+i.s,"")));
+  }
+  if(!nt)warn="PDF sem texto selecionável (letras desenhadas como imagem). Não dá para ler: use Excel/CSV do banco ou cole o texto abaixo.";
+ }else{
+  const wb=XLSX.read(await f.arrayBuffer(),{type:"array",cellDates:true});
+  wb.SheetNames.forEach(n=>XLSX.utils.sheet_to_json(wb.Sheets[n],{header:1,raw:false,dateNF:"dd/mm/yyyy"}).forEach(r=>lines.push(r.filter(x=>x!=null&&x!=="").join(" ; "))));
+ }
+ return {name:f.name,lines,warn};
+}
+function renderFiles(k){$("l"+k).innerHTML=S[k].map((f,i)=>`<li><span>${esc(f.name)} · ${f.lines.filter(l=>l.match(AMT)).length} linhas com valor${f.warn?`<br><b style="color:var(--badt)">⚠ ${f.warn}</b>`:""}</span><button data-k="${k}" data-i="${i}" title="Remover">×</button></li>`).join("");typesUI()}
+async function add(k,files){
+ $("st").textContent="Lendo arquivos…";
+ for(const f of files){try{S[k].push(await readFile(f))}catch(e){alert("Não foi possível ler "+f.name+": "+e.message)}}
+ renderFiles(k);$("st").textContent="";
+}
+["B","E"].forEach(k=>{
+ const d=$("d"+k),i=$("f"+k);
+ d.onclick=()=>i.click();i.onchange=()=>{add(k,[...i.files]);i.value=""};
+ d.ondragover=e=>{e.preventDefault();d.classList.add("over")};d.ondragleave=()=>d.classList.remove("over");
+ d.ondrop=e=>{e.preventDefault();d.classList.remove("over");add(k,[...e.dataTransfer.files])};
+ $("l"+k).onclick=e=>{const b=e.target.closest("button");if(b){S[k].splice(+b.dataset.i,1);renderFiles(k)}};
+});
+function extract(k,mode){
+ const skip=$("skipTot").checked,out=[];
+ S[k].forEach(f=>{let cur="";f.lines.forEach(l=>{
+  const tt=typeOf(l);if(tt)cur=tt;
+  if(skip&&/sub\s?-?total|\btotal\b/i.test(l))return;
+  const m=(l.match(AMT)||[]).map(toC).filter(c=>c>0);if(!m.length)return;
+  const c=mode==="max"?Math.max(...m):mode==="first"?m[0]:m[m.length-1];
+  const d=(l.match(DT)||[""])[0];
+  let doc="";
+  if(k==="E"){
+   const t=typeOf(l)||cur;
+   const n=(l.match(/(?:n[º°o.]*|nota|nf-?c?-?e?|cf-?e)\s*:?\s*(\d{1,9})\b/i)||[])[1];
+   doc=(t+(n?" nº "+n:"")).trim()||l.slice(0,50);
+  }
+  out.push({d,c,doc,tipo:k==="E"?(typeOf(l)||cur||"Outro"):"",file:f.name,line:l});
+ });});
+ return out;
+}
+function conciliar(){
+ const pv=s=>{s=$(s).value.trim().replace(/\./g,"").replace(",",".");return s&&!isNaN(s)?Math.round(parseFloat(s)*100):null};
+ const mn=pv("vMin"),mx=pv("vMax");
+ const B=extract("B",$("mB").value),E=extract("E",$("mE").value).filter(e=>!EX.has(e.tipo)&&(mn==null||e.c>=mn)&&(mx==null||e.c<=mx));
+ if(!B.length||!E.length){$("st").textContent="Importe ao menos um arquivo de cada lado.";return}
+ const map=new Map();E.forEach((e,i)=>{e.i=i;(map.get(e.c)||map.set(e.c,[]).get(e.c)).push(e)});
+ const used=new Set(),used2={};
+ const rows=B.map(b=>{
+  const l=map.get(b.c)||[];const u=used2[b.c]||0;
+  if(u<l.length){used2[b.c]=u+1;used.add(l[u].i);return{...b,s:"ok",erp:l[u]}}
+  return{...b,s:l.length?"falta":"sem",n:l.length,tot:B.filter(x=>x.c===b.c).length};
+ });
+ RES={rows,orph:E.filter(e=>!used.has(e.i))};render();$("st").textContent=`Lidas ${B.length} vendas de cartão e ${E.length} notas (após filtros).`;
+}
+function render(){
+ const {rows,orph}=RES,f=$("flt").value;
+ const cnt=s=>rows.filter(r=>r.s===s);
+ const sum=a=>a.reduce((t,r)=>t+r.c,0);
+ $("stats").innerHTML=`
+ <div class="stat"><b>${rows.length}</b><span>vendas de cartão · ${brl(sum(rows))}</span></div>
+ <div class="stat ok"><b>${cnt("ok").length}</b><span>conciliadas · ${brl(sum(cnt("ok")))}</span></div>
+ <div class="stat bad"><b>${cnt("sem").length}</b><span>sem nenhuma NF · ${brl(sum(cnt("sem")))}</span></div>
+ <div class="stat bad"><b>${cnt("falta").length}</b><span>NF a menos (valor repetido) · ${brl(sum(cnt("falta")))}</span></div>
+ <div class="stat"><b>${orph.length}</b><span>notas sem venda de cartão · ${brl(orph.reduce((t,r)=>t+r.c,0))}</span></div>`;
+ const show=rows.filter(r=>f==="all"||(f==="bad"?r.s!=="ok":r.s===f));
+ $("tb").innerHTML=show.map(r=>`<tr class="${r.s}"><td>${esc(r.d)}</td><td class="r">${brl(r.c)}</td>
+ <td>${r.s==="ok"?"✓ Conciliada":r.s==="sem"?"✗ Sem NF no valor":`✗ Falta emitir NF (${r.tot} vendas iguais, ${r.n} nota${r.n>1?"s":""})`}</td>
+ <td>${r.erp?esc(r.erp.doc):"—"}</td><td>${esc(r.file)}</td></tr>`).join("")||`<tr><td colspan="5">Nada para mostrar.</td></tr>`;
+ $("te").innerHTML=orph.map(r=>`<tr class="erp"><td>${esc(r.d)}</td><td class="r">${brl(r.c)}</td><td>${esc(r.doc)}</td><td>${esc(r.file)}</td></tr>`).join("")||`<tr><td colspan="4">Nenhuma.</td></tr>`;
+ $("res").hidden=false;$("st").textContent="";
+}
+function typesUI(){
+ const E=extract("E",$("mE").value),T={};
+ E.forEach(e=>{const t=T[e.tipo]=T[e.tipo]||{n:0,v:0};t.n++;t.v+=e.c});
+ const ks=["NF-e","NFC-e","CF-e","Outro"].filter(k=>T[k]);
+ $("tp").innerHTML=ks.length?ks.map(k=>`<label class="opt" style="display:block"><input type="checkbox" data-t="${k}" ${EX.has(k)?"":"checked"}> <b>${k}</b> — ${T[k].n} nota(s) · ${brl(T[k].v)}</label>`).join(""):'<span class="msg">Importe os relatórios do ERP para ver os tipos.</span>';
+}
+$("tp").onchange=e=>{const t=e.target.dataset.t;if(t){e.target.checked?EX.delete(t):EX.add(t);RES&&conciliar()}};
+$("vMin").oninput=$("vMax").oninput=()=>RES&&conciliar();
+$("go").onclick=conciliar;$("flt").onchange=()=>RES&&render();
+$("mB").onchange=$("mE").onchange=$("skipTot").onchange=()=>{typesUI();RES&&conciliar()};
+document.querySelectorAll("[data-p]").forEach(b=>b.onclick=()=>{const k=b.dataset.p,t=$("p"+k).value.trim();if(!t)return;S[k].push({name:"Texto colado "+(S[k].length+1),lines:t.split(/\n/),warn:""});$("p"+k).value="";renderFiles(k)});
+$("clr").onclick=()=>{S.B=[];S.E=[];RES=null;renderFiles("B");renderFiles("E");$("res").hidden=true};
+$("csv").onclick=()=>{
+ const L=["Data;Valor;Situacao;Documento ERP;Arquivo",...RES.rows.map(r=>[r.d,(r.c/100).toFixed(2).replace(".",","),r.s==="ok"?"Conciliada":r.s==="sem"?"Sem NF":"Falta emitir NF",r.erp?r.erp.doc:"",r.file].join(";"))];
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+L.join("\n")],{type:"text/csv"}));a.download="conciliacao.csv";a.click();
+};
+</script></main></body></html>
